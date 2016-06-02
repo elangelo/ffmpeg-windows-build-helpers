@@ -13,7 +13,7 @@ check_missing_packages () {
   if [[ -n "${missing_packages[@]}" ]]; then
     clear
     echo "Could not find the following execs: ${missing_packages[@]}"
-    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool"
+    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin"
     echo 'Install the missing packages before running this script.'
     exit 1
   fi
@@ -30,27 +30,27 @@ mkdir -p sandbox/win32/quick_install
 cd sandbox/win32/quick_install
 
 # fdk-aac
-if [[ ! -f $prefix/lib/libfdk-aac.a ]]; then
-  rm -rf fdk-aac
-  git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git || exit 1
-  cd fdk-aac
-    ./autogen.sh
-    ./configure --host=$host --prefix=$prefix --enable-static --disable-shared
-    make -j5 install
-  cd ..
-fi
+#if [[ ! -f $prefix/lib/libfdk-aac.a ]]; then
+#  rm -rf fdk-aac
+#  git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git || exit 1
+#  cd fdk-aac
+#    ./autogen.sh
+#    ./configure --host=$host --prefix=$prefix --enable-static --disable-shared
+#    make -j5 install
+#  cd ..
+#fi
 
 # x264
-if [[ ! -f $prefix/lib/libx264.a ]]; then
-  rm -rf x264
-  git clone --depth 1 http://repo.or.cz/r/x264.git || exit 1
-  cd x264
-    # --enable-static       library is built by default but not installed
-    # --enable-win32thread  avoid installing pthread
-    ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix
-    make -j5 install
-  cd ..
-fi
+#if [[ ! -f $prefix/lib/libx264.a ]]; then
+#  rm -rf x264
+#  git clone --depth 1 http://repo.or.cz/r/x264.git || exit 1
+#  cd x264
+#    # --enable-static       library is built by default but not installed
+#    # --enable-win32thread  avoid installing pthread
+#    ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix
+#    make -j5 install
+#  cd ..
+#fi
 
 # and ffmpeg
 if [[ ! -d ffmpeg_fdk_aac ]]; then
@@ -62,11 +62,10 @@ fi
 cd ffmpeg_fdk_aac
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f config.mak ]]; then
-    ./configure --enable-gpl --enable-libx264 --enable-nonfree \
-      --enable-libfdk-aac --arch=x86 --target-os=mingw32 \
+    ./configure --enable-gpl --arch=x86 --target-os=mingw32 --enable-libvpx \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
   fi
   rm **/*.a # attempt force a rebuild...
-  make -j5 install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
+  make -j9 install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
   
 cd ..
